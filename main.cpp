@@ -1,6 +1,3 @@
-// Copyright (c) 2013-2015 Vittorio Romeo
-// License: Academic Free License ("AFL") v. 3.0
-// AFL License page: http://opensource.org/licenses/AFL-3.0
 #include "Game.hpp"
 
 
@@ -8,202 +5,138 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <random>
 
-// To implement our component-based entity system, we need
-// a `Manager` class that helps us manage components and entities,
-// an `Entity` class that acts as a collection of components,
-// and a `Component` base class from which components will inherit.
+std::default_random_engine gen;
+std::uniform_real_distribution<float> randPosx(0.0f, 500.0f);
+std::uniform_real_distribution<float> randPosy(0.0f, 500.0f);
+std::uniform_int_distribution<int> randColorRed(0,255);
+std::uniform_int_distribution<int> randColorGreen(0,255);
+std::uniform_int_distribution<int> randColorBlue(0,255);
 
-// We will implement a component-based entity system where
-// components contain not only data, but also logic.
+class Entity;
 
-// This kind of system is easier to implement and it's a good
-// starting point to move away from inheritance-based game design.
 
-// In a future video, I may cover a more flexible and elegant
-// entity system where components do not contain logic, but only
-// data.
-
-// Here's a simple diagram of our design:
-
-/*
-
-    [ Manager ]                          /-`update()`
-         |             /-[ Component ]---|
-         \-[ Entity ]--|                 \-`draw()`
-         |             \-[ Component ]
-         |
-         |             /-[ Component ]
-         \-[ Entity ]--|
-                       \-[ Component ]
-*/
-
-namespace CompositionArkanoid
+// == BASE COMPONENT CLASS ==
+class Component
 {
-    // Forward-declaration of the `Entity` class.
-    class Entity;
+public:
+Entity* mEntity{nullptr};
 
-    struct Component
-    {
-        // We begin by defining a base `Component` class.
-        // Game components will inherit from this class.
+Component() {}
+virtual ~Component() {}
 
-        // We will use a pointer to store the parent entity.
-        Entity* entity{nullptr};
+virtual void updateComponent(const float& dt) {}
+virtual void renderComponent(sf::RenderWindow& targetWin) {}
 
-        // Usually a game component will have:
-        // * Some data
-        // * Update behavior
-        // * Drawing behavior
+};
 
-        // Therefore we define two virtual methods that
-        // will be overridden by game component types.
-        virtual void update(float mFT) {}
-        virtual void draw(sf::RenderWindow& targetWin) {}
 
-        // As we'll be using this class polymorphically, it requires
-        // a virtual destructor.
-        virtual ~Component() {}
-    };
+// == ENTITY CLASS ==
+class Entity
+{
+private:
+bool mAlive{true};
+std::vector<std::unique_ptr<Component>> mComponentsContainer {};
 
-    class Entity
-    {
-        // Next, we define an Entity class.
-        // It will basically be an aggregate of components,
-        // with some methods that help us update and draw
-        // all of them.
+public:
+// takes in T(specified component type) <T>
+// takes in any amount of specified arguments that will be forwarded to the Component constructor <TArgs>
+template<typename T, typename... TArgs>
+T& addComponent(TArgs&&... mArgs)
+{
+    // 1. allocate new component of type <T>, 
+    T* component(new T(std::forward<TArgs>(mArgs)...));
+    // 2. components entity owner is set like so
+    component->mEntity = this;
+    // 3. wrap the regular pointer into a smart pointer
+    std::unique_ptr<Component> uC_Ptr{component};
+    // 4. store the component ptr in our container
+    mComponentsContainer.emplace_back(std::move(uC_Ptr));
 
-    private:
-        // We'll keep track of whether the entity is alive or dead
-        // with a boolean and we'll store the components in a private
-        // vector of `std::unique_ptr<Component>`, to allow polymorphism.
-        bool alive{true};
-        std::vector<std::unique_ptr<Component>> components;
-
-        // Now we will define some public methods to update and
-        // draw, to add components and to destroy the entity.
-
-    public:
-        // Updating and drawing simply consists in updating and drawing
-        // all the components.
-        void update(float mFT)
-        {
-            for(auto& c : components) c->update(mFT);
-        }
-        void draw(sf::RenderWindow& targetWin)
-        {
-            for(auto& c : components) c->draw(targetWin);
-        }
-
-        // We will also define some methods to control the lifetime
-        // of the entity.
-        bool isAlive() const { return alive; }
-        void destroy() { alive = false; }
-
-        // Now, we'll define a method that allows us to add components
-        // to our entity.
-        // We'll take advantage of C++11 variadic templates and emplacement
-        // to directly construct our components in place.
-        // `T` is the component type. `TArgs` is a parameter pack of
-        // types used to construct the component.
-        template <typename T, typename... TArgs>
-        T& addComponent(TArgs&&... mArgs)
-        {
-            // We begin by allocating the component of type `T`
-            // on the heap, by forwarding the passed arguments
-            // to its constructor.
-            T* c(new T(std::forward<TArgs>(mArgs)...));
-
-            // We set the component's entity to the current
-            // instance.
-            c->entity = this;
-
-            // We will wrap the raw pointer into a smart one,
-            // so that we can emplace it into our container and
-            // to make sure we do not leak any memory.
-            std::unique_ptr<Component> uPtr{c};
-
-            // Now we'll add the smart pointer to our container:
-            // `std::move` is required, as `std::unique_ptr` cannot
-            // be copied.
-            components.emplace_back(std::move(uPtr));
-
-            // ...and we will return a reference to the newly added
-            // component, in case the user wants to do something
-            // with it.
-            return *c;
-        }
-    };
-
-    // Even if the `Entity` class may seem complex, conceptually it is
-    // very simple. Just think of an entity as a container for components,
-    // with syntatic sugar methods to quicky add/update/draw components.
-
-    // If `Entity` is an aggregate of components, `Manager` is an aggregate
-    // of entities. Implementation is straightforward, and resembles the
-    // previous one.
-
-    struct Manager
-    {
-    private:
-        std::vector<std::unique_ptr<Entity>> entities;
-
-    public:
-        void update(float mFT)
-        {
-            // We will start by cleaning up "dead" entities.
-
-            entities.erase(
-                std::remove_if(std::begin(entities), std::end(entities),
-                    [](const std::unique_ptr<Entity>& mEntity)
-                    {
-                        return !mEntity->isAlive();
-                    }),
-                std::end(entities));
-
-            // This algorithm closely resembles the one we used in
-            // the first episode of the series to delete "destroyed"
-            // blocks. Basically, we're going through all entities and
-            // erasing the "dead" ones.
-            // This is known as the "erase-remove idiom".
-
-            for(auto& e : entities) e->update(mFT);
-        }
-
-        void draw(sf::RenderWindow& targetWin)
-        {
-            for(auto& e : entities) e->draw(targetWin);
-        }
-
-        Entity& addEntity()
-        {
-            Entity* e{new Entity{}};
-            std::unique_ptr<Entity> uPtr{e};
-            entities.emplace_back(std::move(uPtr));
-            return *e;
-        }
-    };
-
-    // Now that we implemented our small (and naive) component-based
-    // entity system, let's test it before going back to our arkanoid
-    // example.
+    // return reference(so it's not lost to the container's ownership) to the component
+    return *component;
 }
 
-// The following example will demonstrate how an entity can be created
-// by putting togheter different components. In this case, we have
-// a `CounterComponent` component which increases an internal `counter`
-// float value every update, and a `KillComponent` that, after being
-// constructed with a reference to a `CounterComponent`, destroys the
-// parent entity when the `counter` float value reaches 100.
+// == accessor functions ==
+bool isAlive() const { return mAlive; }
+void destroyObj() { mAlive = false; } 
 
-using namespace CompositionArkanoid;
+// == main loop functions ==
+void updateObj(const float& dt)
+{
+    for (auto& component : mComponentsContainer)
+    {
+        component->updateComponent(dt);
+    }
+}
+
+void renderObj(sf::RenderWindow& targetWin)
+{
+    for (auto& component : mComponentsContainer)
+    {
+        component->renderComponent(targetWin);
+    }
+}
+
+};
+
+// == ENTITY MANAGER CLASS ==
+class EntityManager
+{
+private:
+std::vector<std::unique_ptr<Entity>> mEntityContainer {};
+
+public:
+EntityManager() {}
+~EntityManager() {}
+
+Entity& addEntity()
+{
+    Entity* entity{new Entity{}};
+    std::unique_ptr<Entity> uPtr{entity};
+    mEntityContainer.emplace_back(std::move(uPtr));
+    return *entity;
+}
+
+void updateManager(const float& dt)
+{
+    // remove all dead entities from mEntityContainer
+    // 1. we have an iterator return a value in removedEntity
+    // 2. using the lambda, it returns a dead entity into removedEntity
+    // 3. erase dead entity from container
+    mEntityContainer.erase
+    (std::remove_if(mEntityContainer.begin(), mEntityContainer.end(),
+    [](const std::unique_ptr<Entity>& entity)
+        {
+            return !entity->isAlive();
+        }
+    ),
+    mEntityContainer.end());
+
+    // update all entities in container
+    for(auto& entity : mEntityContainer)
+    {
+        entity->updateObj(dt);
+    } 
+}
+
+void renderManager(sf::RenderWindow& targetWin)
+{
+    for(auto& entity : mEntityContainer)
+    {
+        entity->renderObj(targetWin);
+    }
+}
+
+};
 
 struct CounterComponent : Component
 {
     float counter;
-    void update(float mFT) override
+    void updateComponent(const float& dt) override
     {
-        counter += mFT;
+        counter += dt;
         std::cout << counter << std::endl;
     }
 };
@@ -217,9 +150,9 @@ struct KillComponent : Component
     {
     }
 
-    void update(float mFT) override
+    void updateComponent(const float& mFT) override
     {
-        if(cCounter.counter >= 100) entity->destroy();
+        if(cCounter.counter >= 10000) mEntity->destroyObj();
     }
 };
 
@@ -228,12 +161,12 @@ struct ShapeComponent : Component
     sf::RectangleShape mShape;
     ShapeComponent()
     {
-        mShape.setFillColor(sf::Color::Green);
-        mShape.setSize(sf::Vector2f(100.0f,100.0f));
-        mShape.setPosition(200.0f,300.0f);
+        mShape.setFillColor(sf::Color(randColorRed(gen),randColorGreen(gen),randColorBlue(gen),255));
+        mShape.setSize(sf::Vector2f(10.0f,10.0f));
+        mShape.setPosition(randPosx(gen),randPosy(gen));
     }
 
-    void draw(sf::RenderWindow& targetWin) override
+    void renderComponent(sf::RenderWindow& targetWin) override
     {
         targetWin.draw(this->mShape);
     }
@@ -242,8 +175,9 @@ struct ShapeComponent : Component
 
 int main()
 {
-    sf::RenderWindow mainWindow(sf::VideoMode(640,920),"ECS Test",sf::Style::Titlebar | sf::Style::Close);
-    Manager manager;
+    sf::RenderWindow mainWindow(sf::VideoMode(920,920),"ECS Test",sf::Style::Titlebar | sf::Style::Close);
+    EntityManager manager;
+
 
     // We create an entity and get a reference to it:
     auto& entity(manager.addEntity());
@@ -253,27 +187,13 @@ int main()
     auto& cKill(entity.addComponent<KillComponent>(cCounter));
     auto& cShape(entity.addComponent<ShapeComponent>());
 
-    // And here we simulate a game loop:
-    for(auto i(0u); i < 1000; ++i)
+
+    while(mainWindow.isOpen())
     {
         mainWindow.clear();
-        manager.update(1.f);
-        manager.draw(mainWindow);
+        manager.updateManager(1.f);
+        manager.renderManager(mainWindow);
         mainWindow.display();
-
     }
-    mainWindow.close();
+    
 }
-
-// The above example works, but there is one major issue:
-// `CounterComponent` and `KillComponent` and tightly coupled.
-
-// We need to figure out an efficient way to check if a certain
-// entity has a certain component type, and, if so, retrieve
-// a reference.
-
-// In this way, we can avoid passing a reference in
-// `KillComponent`'s constructor, and also have a way of
-// getting/checking components at runtime.
-
-// Let's see what we can do in the next code segment.

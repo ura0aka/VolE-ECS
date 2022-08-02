@@ -7,7 +7,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # There is NO WARRANTY, to the extent permitted by law.
  
 
-# Make data base, printed on Tue Aug 02 11:46:05 2022
+# Make data base, printed on Tue Aug 02 14:08:37 2022
 
 # Variables
 
@@ -40,7 +40,7 @@ MAKE_COMMAND := C:/ProgramData/chocolatey/lib/make/tools/install/bin/make.exe
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_12988_YDUQMGUBJNQVCYTR
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_4152_PATOQKGKTMIPLWNG
 # makefile (from 'Makefile', line 9)
 CPPFILES = main.cpp Game.cpp
 # environment
@@ -94,7 +94,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 12988
+VSCODE_PID = 4152
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -226,9 +226,9 @@ VCPKG_DEFAULT_TRIPLET = x64-windows
 
 # Directories
 
-# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1659455163): 20 files, no impossibilities.
+# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1659457853): 24 files, no impossibilities.
 
-# 20 files, no impossibilities in 1 directories.
+# 24 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -286,14 +286,14 @@ all: app
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-11 09:46:41
+#  Last modified 2022-08-02 12:31:41
 #  File has been updated.
 #  Successfully updated.
 
 main.o: main.cpp Game.hpp
 #  Implicit rule search has been done.
 #  Implicit/static pattern stem: 'main'
-#  File does not exist.
+#  Last modified 2022-08-02 12:30:53
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
@@ -309,13 +309,12 @@ main.o: main.cpp Game.hpp
 # automatic
 # ^ := main.cpp Game.hpp
 # automatic
-# ? := main.cpp Game.hpp
+# ? := main.cpp
 # automatic
 # | := 
 # variable set hash-table stats:
 # Load=8/32=25%, Rehash=0, Collisions=2/15=13%
-#  recipe to execute (from 'Makefile 
-', line 24):
+#  recipe to execute (from 'Makefile', line 24):
 	$(CC) -c -o $@ $< $(INCL)
 
 # Not a target:
@@ -333,12 +332,12 @@ Game.hpp:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 30 / storage = 328 B / avg = 10 B
-# current buf: size = 8174 B / used = 328 B / count = 30 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 32 / storage = 341 B / avg = 10 B
+# current buf: size = 8174 B / used = 341 B / count = 32 / avg = 10 B
 
-# strcache performance: lookups = 46 / hit rate = 34%
+# strcache performance: lookups = 50 / hit rate = 36%
 # hash-table stats:
-# Load=30/8192=0%, Rehash=0, Collisions=0/46=0%
-# Finished Make data base on Tue Aug 02 11:46:05 2022
+# Load=32/8192=0%, Rehash=0, Collisions=0/50=0%
+# Finished Make data base on Tue Aug 02 14:08:37 2022
 
  
