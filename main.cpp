@@ -6,6 +6,8 @@
 #include <memory>
 #include <algorithm>
 #include <random>
+#include <cstdint>
+#include <bitset>
 
 std::default_random_engine gen;
 std::uniform_real_distribution<float> randPosx(0.0f, 500.0f);
@@ -13,6 +15,32 @@ std::uniform_real_distribution<float> randPosy(0.0f, 500.0f);
 std::uniform_int_distribution<int> randColorRed(0,255);
 std::uniform_int_distribution<int> randColorGreen(0,255);
 std::uniform_int_distribution<int> randColorBlue(0,255);
+
+// == Component ID ==
+using ComponentID = std::uint32_t;
+
+// generate a unique id for a component
+inline ComponentID genUComponentID() noexcept
+{
+    static ComponentID lastID{0u};
+    // basically returns the current value of lastID
+    // and then increments it for the next time this is called
+    return lastID++;
+}
+
+template<typename T> inline ComponentID getComponentTypeID() noexcept
+{
+    // for each unique component type, the template will be instanciated
+    // only once for each type of component thus, creating a unique ID
+
+    static ComponentID typeID{genUComponentID()};
+    // subsequent calls with the same component type will return the same ID,
+    // thank you, template magic 0o0
+    return typeID;
+}
+
+
+
 
 class Entity;
 
@@ -188,6 +216,7 @@ struct KillComponent : Component
 };
 
 
+
 int main()
 {
     sf::RenderWindow mainWindow(sf::VideoMode(920,920),"ECS Test",sf::Style::Titlebar | sf::Style::Close);
@@ -209,6 +238,18 @@ int main()
         float currentFrameTime = clock.getElapsedTime().asSeconds();
         dt = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
+        
+
+        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
+        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
+        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
+
+        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
+        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
+        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
+        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
+        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
+        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
 
         if(spawnTimer >= spawnTimerMax)
         {
