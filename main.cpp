@@ -118,7 +118,10 @@ void updateManager(const float& dt)
     for(auto& entity : mEntityContainer)
     {
         entity->updateObj(dt);
-    } 
+    }
+
+    std::cout << "no. of entities: " << mEntityContainer.size() <<  std::endl;
+
 }
 
 void renderManager(sf::RenderWindow& targetWin)
@@ -137,22 +140,7 @@ struct CounterComponent : Component
     void updateComponent(const float& dt) override
     {
         counter += dt;
-        std::cout << counter << std::endl;
-    }
-};
-
-struct KillComponent : Component
-{
-    CounterComponent& cCounter;
-
-    KillComponent(CounterComponent& mCounterComponent)
-        : cCounter(mCounterComponent)
-    {
-    }
-
-    void updateComponent(const float& mFT) override
-    {
-        if(cCounter.counter >= 10000) mEntity->destroyObj();
+        //std::cout << counter << std::endl;
     }
 };
 
@@ -166,6 +154,16 @@ struct ShapeComponent : Component
         mShape.setPosition(randPosx(gen),randPosy(gen));
     }
 
+    const float getPos()
+    {
+        return mShape.getPosition().y;
+    }
+
+    void updateComponent(const float& dt)
+    {
+        mShape.move(0.0f, 100.0f * dt);
+    }
+
     void renderComponent(sf::RenderWindow& targetWin) override
     {
         targetWin.draw(this->mShape);
@@ -173,25 +171,69 @@ struct ShapeComponent : Component
     
 };
 
+struct KillComponent : Component
+{
+    CounterComponent& cCounter;
+    ShapeComponent& cShape;
+
+    KillComponent(CounterComponent& mCounterComponent, ShapeComponent& mShapeComponent)
+        : cCounter(mCounterComponent), cShape(mShapeComponent)
+    {
+    }
+
+    void updateComponent(const float& dt) override
+    {
+        if(cCounter.counter >= 3) mEntity->destroyObj();
+    }
+};
+
+
 int main()
 {
     sf::RenderWindow mainWindow(sf::VideoMode(920,920),"ECS Test",sf::Style::Titlebar | sf::Style::Close);
+    mainWindow.setFramerateLimit(120);
+
+    sf::Clock clock;
+    
+    float spawnTimerMax = 5.0f;
+    float spawnTimer = spawnTimerMax;
+    
+    float UPS = 1.0f / 120.0f;
+    float lastFrameTime = 0.0f;
+    float dt = 0.0f;
+
     EntityManager manager;
-
-
-    // We create an entity and get a reference to it:
-    auto& entity(manager.addEntity());
-
-    // We create components:
-    auto& cCounter(entity.addComponent<CounterComponent>());
-    auto& cKill(entity.addComponent<KillComponent>(cCounter));
-    auto& cShape(entity.addComponent<ShapeComponent>());
-
 
     while(mainWindow.isOpen())
     {
+        float currentFrameTime = clock.getElapsedTime().asSeconds();
+        dt = currentFrameTime - lastFrameTime;
+        lastFrameTime = currentFrameTime;
+
+        if(spawnTimer >= spawnTimerMax)
+        {
+            for(int i {0}; i < 5; ++i)
+            {
+                auto& entity(manager.addEntity());
+                auto& cCounter(entity.addComponent<CounterComponent>());
+                auto& cShape(entity.addComponent<ShapeComponent>());
+                auto& cKill(entity.addComponent<KillComponent>(cCounter,cShape));
+
+                spawnTimer = 0.0f;
+            }
+        }
+        else
+        {
+            spawnTimer += 1.0f;
+        }
+
         mainWindow.clear();
-        manager.updateManager(1.f);
+        if(dt >= UPS)
+        {
+            manager.updateManager(dt);
+            dt -= UPS;
+        }
+        
         manager.renderManager(mainWindow);
         mainWindow.display();
     }
