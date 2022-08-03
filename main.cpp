@@ -16,8 +16,13 @@ std::uniform_int_distribution<int> randColorRed(0,255);
 std::uniform_int_distribution<int> randColorGreen(0,255);
 std::uniform_int_distribution<int> randColorBlue(0,255);
 
-// == Component ID ==
+
+// == Component ID system ==
 using ComponentID = std::uint32_t;
+constexpr std::size_t maxComponents{32};
+
+using ComponentBitset = std::bitset<maxComponents>;
+using ComponentArray = std::array<Component*, maxComponents>;
 
 // generate a unique id for a component
 inline ComponentID genUComponentID() noexcept
@@ -33,13 +38,13 @@ template<typename T> inline ComponentID getComponentTypeID() noexcept
     // for each unique component type, the template will be instanciated
     // only once for each type of component thus, creating a unique ID
 
+    // make sure getComponentTypeID only gets called with 'T' that inherits from the Component class
+    static_assert(std::is_base_of<Component, T>::value && "ERROR: T must inherit from base Component class.");
     static ComponentID typeID{genUComponentID()};
     // subsequent calls with the same component type will return the same ID,
     // thank you, template magic 0o0
     return typeID;
 }
-
-
 
 
 class Entity;
@@ -50,6 +55,8 @@ class Component
 {
 public:
 Entity* mEntity{nullptr};
+
+virtual void initComponent() {}
 
 Component() {}
 virtual ~Component() {}
@@ -67,12 +74,24 @@ private:
 bool mAlive{true};
 std::vector<std::unique_ptr<Component>> mComponentsContainer {};
 
+ComponentArray mComponentArray{}; // stores the component pointer
+ComponentBitset mComponentBitset{}; // stores the ID of a particular component
+
 public:
+template<typename T> bool hasComponent() const
+{
+    // check if entity possesses a component of type 'T'
+    return mComponentBitset[getComponentTypeID<T>()];
+}
+
+
 // takes in T(specified component type) <T>
 // takes in any amount of specified arguments that will be forwarded to the Component constructor <TArgs>
 template<typename T, typename... TArgs>
 T& addComponent(TArgs&&... mArgs)
 {
+    assert(!hasComponent<T>() && "ERROR: entity already owns this component.")
+
     // 1. allocate new component of type <T>, 
     T* component(new T(std::forward<TArgs>(mArgs)...));
     // 2. components entity owner is set like so
@@ -82,13 +101,27 @@ T& addComponent(TArgs&&... mArgs)
     // 4. store the component ptr in our container
     mComponentsContainer.emplace_back(std::move(uC_Ptr));
 
+    // add a component of type 'T' to mComponentArray &
+    // set the component's bitset (depending on its unique ID)
+    mComponentArray[getComponentTypeID<T>()] = component;
+    mComponentBitset[getComponentTypeID<T>()] = true;
+
+    component->initComponent();
     // return reference(so it's not lost to the container's ownership) to the component
     return *component;
 }
 
 // == accessor functions ==
 bool isAlive() const { return mAlive; }
-void destroyObj() { mAlive = false; } 
+void destroyObj() { mAlive = false; }
+
+template<typename T> T& getComponent() const
+{
+    // retrieve pointer to given component of type 'T' from array
+    assert(hasComponent<T>() && "ERROR: Component does not exist.");
+    auto ptr(mComponentArray[getComponentTypeID<T>()]);
+    return *static_cast<T*>(ptr);
+} 
 
 // == main loop functions ==
 void updateObj(const float& dt)
@@ -201,17 +234,18 @@ struct ShapeComponent : Component
 
 struct KillComponent : Component
 {
-    CounterComponent& cCounter;
-    ShapeComponent& cShape;
+    CounterComponent* cCounter;
+    ShapeComponent* cShape;
 
-    KillComponent(CounterComponent& mCounterComponent, ShapeComponent& mShapeComponent)
-        : cCounter(mCounterComponent), cShape(mShapeComponent)
+    void initComponent() override
     {
+        cCounter = &mEntity->getComponent<CounterComponent>();
+        cShape = &mEntity->getComponent<ShapeComponent>();
     }
 
     void updateComponent(const float& dt) override
     {
-        if(cCounter.counter >= 3) mEntity->destroyObj();
+        if(cCounter->counter >= 3) mEntity->destroyObj();
     }
 };
 
@@ -239,26 +273,14 @@ int main()
         dt = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
         
-
-        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
-        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
-        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
-
-        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
-        std::cout << "CounterComponent ID: " << getComponentTypeID<CounterComponent>() << std::endl;
-        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
-        std::cout << "ShapeComponent ID: " << getComponentTypeID<ShapeComponent>() << std::endl;
-        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
-        std::cout << "KillComponent ID: " << getComponentTypeID<KillComponent>() << std::endl;
-
         if(spawnTimer >= spawnTimerMax)
         {
-            for(int i {0}; i < 5; ++i)
+            for(int i {0}; i < 1; ++i)
             {
                 auto& entity(manager.addEntity());
                 auto& cCounter(entity.addComponent<CounterComponent>());
                 auto& cShape(entity.addComponent<ShapeComponent>());
-                auto& cKill(entity.addComponent<KillComponent>(cCounter,cShape));
+                auto& cKill(entity.addComponent<KillComponent>());
 
                 spawnTimer = 0.0f;
             }
