@@ -8,6 +8,7 @@
 #include <random>
 #include <cstdint>
 #include <bitset>
+#include <cassert>
 
 std::default_random_engine gen;
 std::uniform_real_distribution<float> randPosx(0.0f, 500.0f);
@@ -16,8 +17,10 @@ std::uniform_int_distribution<int> randColorRed(0,255);
 std::uniform_int_distribution<int> randColorGreen(0,255);
 std::uniform_int_distribution<int> randColorBlue(0,255);
 
+class Component;
+class Entity;
 
-// == Component ID system ==
+// == COMPONENT ID SYSTEM ==
 using ComponentID = std::uint32_t;
 constexpr std::size_t maxComponents{32};
 
@@ -45,9 +48,6 @@ template<typename T> inline ComponentID getComponentTypeID() noexcept
     // thank you, template magic 0o0
     return typeID;
 }
-
-
-class Entity;
 
 
 // == BASE COMPONENT CLASS ==
@@ -90,7 +90,7 @@ template<typename T> bool hasComponent() const
 template<typename T, typename... TArgs>
 T& addComponent(TArgs&&... mArgs)
 {
-    assert(!hasComponent<T>() && "ERROR: entity already owns this component.")
+    assert(!hasComponent<T>() && "ERROR: entity already owns this component.");
 
     // 1. allocate new component of type <T>, 
     T* component(new T(std::forward<TArgs>(mArgs)...));
