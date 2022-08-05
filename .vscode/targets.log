@@ -7,7 +7,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # There is NO WARRANTY, to the extent permitted by law.
  
 
-# Make data base, printed on Wed Aug 03 08:24:04 2022
+# Make data base, printed on Fri Aug 05 09:14:43 2022
 
 # Variables
 
@@ -40,7 +40,7 @@ MAKE_COMMAND := C:/ProgramData/chocolatey/lib/make/tools/install/bin/make.exe
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_10200_FAQBIALSULROOQEJ
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_7368_DJSSGUDDMDUEJZLG
 # makefile (from 'Makefile', line 9)
 CPPFILES = main.cpp Game.cpp
 # environment
@@ -58,7 +58,7 @@ BINARY = app
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = C:\Users\maxge\AppData\Roaming\Code\CachedData\3b889b090b5ad5793f524b5d1d39fda662b96a2a
+VSCODE_CODE_CACHE_PATH = C:\Users\maxge\AppData\Roaming\Code\CachedData\da76f93349a72022ca4670c1b84860304616aaa2
 # environment
 LANG = C
 # default
@@ -94,7 +94,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 10200
+VSCODE_PID = 7368
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -166,6 +166,8 @@ OS = Windows_NT
 # makefile (from 'Makefile', line 6)
 OPT = -O0
 # environment
+__COMPAT_LAYER = DetectorsAppHealth
+# environment
 AMDRMSDKPATH = C:\Program Files\AMD\RyzenMasterSDK\
 # makefile
 .DEFAULT_GOAL := all
@@ -196,7 +198,7 @@ ELECTRON_RUN_AS_NODE = 1
 # environment
 TEMP = C:\Users\maxge\AppData\Local\Temp
 # environment
-VSCODE_IPC_HOOK = \\.\pipe\dc9de2be27941e54872e45135a700095-1.69.2-main-sock
+VSCODE_IPC_HOOK = \\.\pipe\dc9de2be27941e54872e45135a700095-1.70.0-main-sock
 # default
 .RECIPEPREFIX := 
 # automatic
@@ -218,7 +220,7 @@ PROCESSOR_IDENTIFIER = AMD64 Family 23 Model 113 Stepping 0, AuthenticAMD
 # environment
 VCPKG_DEFAULT_TRIPLET = x64-windows
 # variable set hash-table stats:
-# Load=103/1024=10%, Rehash=0, Collisions=18/140=13%
+# Load=104/1024=10%, Rehash=0, Collisions=18/141=13%
 
 # Pattern-specific Variable Values
 
@@ -226,7 +228,7 @@ VCPKG_DEFAULT_TRIPLET = x64-windows
 
 # Directories
 
-# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1659474490): 24 files, no impossibilities.
+# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1659570275): 24 files, no impossibilities.
 
 # 24 files, no impossibilities in 1 directories.
 
@@ -264,44 +266,15 @@ clean:
 	rm -rf $(BINARY) $(OBJECTS)
 
 # Not a target:
-Game.cpp:
-#  Implicit rule search has been done.
-#  Last modified 2022-08-02 17:08:38
-#  File has been updated.
-#  Successfully updated.
-
-# Not a target:
 .DEFAULT:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
 
-Game.o: Game.cpp Game.hpp
-#  Implicit rule search has been done.
-#  Implicit/static pattern stem: 'Game'
-#  Last modified 2022-08-02 11:57:01
-#  File has been updated.
-#  Needs to be updated (-q is set).
-# automatic
-# @ := Game.o
-# automatic
-# * := Game
-# automatic
-# < := Game.cpp
-# automatic
-# + := Game.cpp Game.hpp
-# automatic
-# % := 
-# automatic
-# ^ := Game.cpp Game.hpp
-# automatic
-# ? := Game.cpp
-# automatic
-# | := 
-# variable set hash-table stats:
-# Load=8/32=25%, Rehash=0, Collisions=2/15=13%
-#  recipe to execute (from 'Makefile', line 24):
-	$(CC) -c -o $@ $< $(INCL)
+Game.o: Game.hpp
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
 
 all: app
 #  Command line target.
@@ -315,17 +288,35 @@ all: app
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified  
-2022-08-02 17:08:06
+#  Last modified 2022-08-03 19:45:53
 #  File has been updated.
 #  Successfully updated.
 
 main.o: main.cpp Game.hpp
 #  Implicit rule search has been done.
 #  Implicit/static pattern stem: 'main'
-#  Last modified 2022-08-02 17:08:10
+#  Last modified 2022-08-03 19:44:35
 #  File has been updated.
-#  Successfully updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := main.o
+# automatic
+# * := main
+# automatic
+# < := main.cpp
+# automatic
+# + := main.cpp Game.hpp
+# automatic
+# % := 
+# automatic
+# ^ := main.cpp Game.hpp
+# automatic
+# ? := main.cpp
+# automatic
+# | := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Coll 
+isions=2/15=13%
 #  recipe to execute (from 'Makefile', line 24):
 	$(CC) -c -o $@ $< $(INCL)
 
@@ -337,19 +328,19 @@ Game.hpp:
 #  Successfully updated.
 
 # files hash-table stats:
-# Load=11/1024=1%, Rehash=0, Collisions=0/35=0%
+# Load=10/1024=1%, Rehash=0, Collisions=0/31=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 33 / storage = 346 B / avg = 10 B
-# current buf: size = 8174 B / used = 346 B / count = 33 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 32 / storage = 341 B / avg = 10 B
+# current buf: size = 8174 B / used = 341 B / count = 32 / avg = 10 B
 
-# strcache performance: lookups = 53 / hit rate = 37%
+# strcache performance: lookups = 50 / hit rate = 36%
 # hash-table stats:
-# Load=33/8192=0%, Rehash=0, Collisions=0/53=0%
-# Finished Make data base on Wed Aug 03 08:24:04 2022
+# Load=32/8192=0%, Rehash=0, Collisions=0/50=0%
+# Finished Make data base on Fri Aug 05 09:14:43 2022
 
  

@@ -1,6 +1,5 @@
 #include "Game.hpp"
 
-
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -10,6 +9,7 @@
 #include <bitset>
 #include <cassert>
 
+// == For testing ==
 std::default_random_engine gen;
 std::uniform_real_distribution<float> randPosx(0.0f, 500.0f);
 std::uniform_real_distribution<float> randPosy(0.0f, 500.0f);
@@ -27,12 +27,11 @@ constexpr std::size_t maxComponents{32};
 using ComponentBitset = std::bitset<maxComponents>;
 using ComponentArray = std::array<Component*, maxComponents>;
 
-// generate a unique id for a component
 inline ComponentID genUComponentID() noexcept
 {
+    // generate a unique id for a component 
+    // (this gets called in the getComponentTypeID function -> when Entity::addComponent() is called)
     static ComponentID lastID{0u};
-    // basically returns the current value of lastID
-    // and then increments it for the next time this is called
     return lastID++;
 }
 
@@ -42,10 +41,11 @@ template<typename T> inline ComponentID getComponentTypeID() noexcept
     // only once for each type of component thus, creating a unique ID
 
     // make sure getComponentTypeID only gets called with 'T' that inherits from the Component class
+    // (std::is_base_of provides ::value = TRUE if the derived is part of the given base class)
     static_assert(std::is_base_of<Component, T>::value && "ERROR: T must inherit from base Component class.");
     static ComponentID typeID{genUComponentID()};
-    // subsequent calls with the same component type will return the same ID,
-    // thank you, template magic 0o0
+
+    // subsequent calls with the same component type will return the same ID
     return typeID;
 }
 
@@ -56,6 +56,8 @@ class Component
 public:
 Entity* mEntity{nullptr};
 
+// for any component that is dependant on other component types
+// (makes composition easiers)
 virtual void initComponent() {}
 
 Component() {}
@@ -74,16 +76,16 @@ private:
 bool mAlive{true};
 std::vector<std::unique_ptr<Component>> mComponentsContainer {};
 
-ComponentArray mComponentArray{}; // stores the component pointer
-ComponentBitset mComponentBitset{}; // stores the ID of a particular component
+ComponentArray mComponentArray {}; // stores the component pointer
+ComponentBitset mComponentBitset {}; // stores the ID of a particular component
 
 public:
 template<typename T> bool hasComponent() const
 {
     // check if entity possesses a component of type 'T'
+    // (bitset returns the value (true/false) of given index, which happens to be the unique ID)
     return mComponentBitset[getComponentTypeID<T>()];
 }
-
 
 // takes in T(specified component type) <T>
 // takes in any amount of specified arguments that will be forwarded to the Component constructor <TArgs>
@@ -98,16 +100,16 @@ T& addComponent(TArgs&&... mArgs)
     component->mEntity = this;
     // 3. wrap the regular pointer into a smart pointer
     std::unique_ptr<Component> uC_Ptr{component};
-    // 4. store the component ptr in our container
+    // 4. store the component smart_ptr in our container
     mComponentsContainer.emplace_back(std::move(uC_Ptr));
 
-    // add a component of type 'T' to mComponentArray &
+    // add a component of type 'T' at mComponentArray's index -> (unique ID) &
     // set the component's bitset (depending on its unique ID)
     mComponentArray[getComponentTypeID<T>()] = component;
     mComponentBitset[getComponentTypeID<T>()] = true;
 
     component->initComponent();
-    // return reference(so it's not lost to the container's ownership) to the component
+    // return reference (so it's not lost to the container's ownership) to the component
     return *component;
 }
 
@@ -117,13 +119,13 @@ void destroyObj() { mAlive = false; }
 
 template<typename T> T& getComponent() const
 {
-    // retrieve pointer to given component of type 'T' from array
+    // retrieve pointer to given component of type 'T' from mComponentArray
     assert(hasComponent<T>() && "ERROR: Component does not exist.");
-    auto ptr(mComponentArray[getComponentTypeID<T>()]);
+    auto ptr{mComponentArray[getComponentTypeID<T>()]};
     return *static_cast<T*>(ptr);
 } 
 
-// == main loop functions ==
+// == main loop functions == 
 void updateObj(const float& dt)
 {
     for (auto& component : mComponentsContainer)
@@ -154,12 +156,18 @@ EntityManager() {}
 
 Entity& addEntity()
 {
+    // 1. create new entity (add on the heap and assign pointer to it)
     Entity* entity{new Entity{}};
+    // 2. wrap pure pointer into smart pointer
     std::unique_ptr<Entity> uPtr{entity};
+    // 3. place smart pointer -> entity obj in container
     mEntityContainer.emplace_back(std::move(uPtr));
+
+
     return *entity;
 }
 
+// main loop functions
 void updateManager(const float& dt)
 {
     // remove all dead entities from mEntityContainer
@@ -181,7 +189,7 @@ void updateManager(const float& dt)
         entity->updateObj(dt);
     }
 
-    std::cout << "no. of entities: " << mEntityContainer.size() <<  std::endl;
+    //std::cout << "no. of entities: " << mEntityContainer.size() <<  std::endl;
 
 }
 
@@ -195,6 +203,8 @@ void renderManager(sf::RenderWindow& targetWin)
 
 };
 
+
+// == COMPONENTS ==
 struct CounterComponent : Component
 {
     float counter;
@@ -222,7 +232,7 @@ struct ShapeComponent : Component
 
     void updateComponent(const float& dt)
     {
-        mShape.move(0.0f, 100.0f * dt);
+        mShape.move(0.0f, 200.0f * dt);
     }
 
     void renderComponent(sf::RenderWindow& targetWin) override
@@ -245,7 +255,7 @@ struct KillComponent : Component
 
     void updateComponent(const float& dt) override
     {
-        if(cCounter->counter >= 3) mEntity->destroyObj();
+        if(cCounter->counter >= 2) mEntity->destroyObj();
     }
 };
 
@@ -275,12 +285,13 @@ int main()
         
         if(spawnTimer >= spawnTimerMax)
         {
-            for(int i {0}; i < 1; ++i)
+            for(int i {0}; i < 10; ++i)
             {
                 auto& entity(manager.addEntity());
                 auto& cCounter(entity.addComponent<CounterComponent>());
                 auto& cShape(entity.addComponent<ShapeComponent>());
                 auto& cKill(entity.addComponent<KillComponent>());
+                
 
                 spawnTimer = 0.0f;
             }
