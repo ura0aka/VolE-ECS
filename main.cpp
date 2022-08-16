@@ -327,6 +327,12 @@ struct KillComponent : Component
 
 int main()
 {
+    enum VOLEGroup : std::size_t
+    {
+        Player,
+        NPC
+    };
+
     sf::RenderWindow mainWindow(sf::VideoMode(920,920),"ECS Test",sf::Style::Titlebar | sf::Style::Close);
     mainWindow.setFramerateLimit(120);
 
