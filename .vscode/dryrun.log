@@ -1,7 +1,6 @@
 make.exe --dry-run --always-make --keep-going --print-directory
 make: Entering directory 'd:/Users/maxge/Code/Projects/IWantToKillMyself'
 g++ -c -o main.o main.cpp -Isrc/include
- 
 g++ -c -o Game.o Game.cpp -Isrc/include
 g++ -o app main.o Game.o -Lsrc/lib -lsfml-graphics -lsfml-window -lsfml-system
 make: Leaving directory 'd:/Users/maxge/Code/Projects/IWantToKillMyself'

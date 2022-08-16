@@ -5,9 +5,8 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
- 
 
-# Make data base, printed on Fri Aug 05 09:14:43 2022
+# Make data base, printed on Tue Aug 16 16:11:43 2022
 
 # Variables
 
@@ -30,7 +29,8 @@ CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
 SYSTEMROOT = C:\Windows
 # makefile (from 'Makefile', line 4)
-LIBS = -Lsrc/lib -lsfml-graphics -lsfml-window -lsfml-system
+LIBS =  
+-Lsrc/lib -lsfml-graphics -lsfml-window -lsfml-system
 # environment
 PROCESSOR_LEVEL = 23
 # environment
@@ -40,7 +40,7 @@ MAKE_COMMAND := C:/ProgramData/chocolatey/lib/make/tools/install/bin/make.exe
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_7368_DJSSGUDDMDUEJZLG
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_14972_TRLRHBPDEPFRLPSM
 # makefile (from 'Makefile', line 9)
 CPPFILES = main.cpp Game.cpp
 # environment
@@ -58,7 +58,7 @@ BINARY = app
 # automatic
 %F = $(notdir $%)
 # environment
-VSCODE_CODE_CACHE_PATH = C:\Users\maxge\AppData\Roaming\Code\CachedData\da76f93349a72022ca4670c1b84860304616aaa2
+VSCODE_CODE_CACHE_PATH = C:\Users\maxge\AppData\Roaming\Code\CachedData\6d9b74a70ca9c7733b29f0456fd8195364076dda
 # environment
 LANG = C
 # default
@@ -94,7 +94,7 @@ MAKEFILE_LIST := Makefile
 # automatic
 @F = $(notdir $@)
 # environment
-VSCODE_PID = 7368
+VSCODE_PID = 14972
 # automatic
 ?D = $(patsubst %/,%,$(patsubst %\,%,$(dir $?)))
 # automatic
@@ -166,8 +166,6 @@ OS = Windows_NT
 # makefile (from 'Makefile', line 6)
 OPT = -O0
 # environment
-__COMPAT_LAYER = DetectorsAppHealth
-# environment
 AMDRMSDKPATH = C:\Program Files\AMD\RyzenMasterSDK\
 # makefile
 .DEFAULT_GOAL := all
@@ -198,7 +196,7 @@ ELECTRON_RUN_AS_NODE = 1
 # environment
 TEMP = C:\Users\maxge\AppData\Local\Temp
 # environment
-VSCODE_IPC_HOOK = \\.\pipe\dc9de2be27941e54872e45135a700095-1.70.0-main-sock
+VSCODE_IPC_HOOK = \\.\pipe\dc9de2be27941e54872e45135a700095-1.70.1-main-sock
 # default
 .RECIPEPREFIX := 
 # automatic
@@ -220,7 +218,7 @@ PROCESSOR_IDENTIFIER = AMD64 Family 23 Model 113 Stepping 0, AuthenticAMD
 # environment
 VCPKG_DEFAULT_TRIPLET = x64-windows
 # variable set hash-table stats:
-# Load=104/1024=10%, Rehash=0, Collisions=18/141=13%
+# Load=103/1024=10%, Rehash=0, Collisions=18/140=13%
 
 # Pattern-specific Variable Values
 
@@ -228,7 +226,7 @@ VCPKG_DEFAULT_TRIPLET = x64-windows
 
 # Directories
 
-# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1659570275): 24 files, no impossibilities.
+# . (key d:/Users/maxge/Code/Projects/IWantToKillMyself, mtime 1660055894): 24 files, no impossibilities.
 
 # 24 files, no impossibilities in 1 directories.
 
@@ -288,14 +286,14 @@ all: app
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-03 19:45:53
+#  Last modified 2022-08-11 11:29:00
 #  File has been updated.
 #  Successfully updated.
 
 main.o: main.cpp Game.hpp
 #  Implicit rule search has been done.
 #  Implicit/static pattern stem: 'main'
-#  Last modified 2022-08-03 19:44:35
+#  Last modified 2022-08-09 10:38:14
 #  File has been updated.
 #  Needs to be updated (-q is set).
 # automatic
@@ -315,8 +313,7 @@ main.o: main.cpp Game.hpp
 # automatic
 # | := 
 # variable set hash-table stats:
-# Load=8/32=25%, Rehash=0, Coll 
-isions=2/15=13%
+# Load=8/32=25%, Rehash=0, Collisions=2/15=13%
 #  recipe to execute (from 'Makefile', line 24):
 	$(CC) -c -o $@ $< $(INCL)
 
@@ -341,6 +338,6 @@ Game.hpp:
 # strcache performance: lookups = 50 / hit rate = 36%
 # hash-table stats:
 # Load=32/8192=0%, Rehash=0, Collisions=0/50=0%
-# Finished Make data base on Fri Aug 05 09:14:43 2022
+# Finished Make data base on Tue Aug 16 16:11:43 2022
 
  

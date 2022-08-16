@@ -11,18 +11,25 @@
 
 // == For testing ==
 std::default_random_engine gen;
-std::uniform_real_distribution<float> randPosx(0.0f, 500.0f);
-std::uniform_real_distribution<float> randPosy(0.0f, 500.0f);
+std::uniform_real_distribution<float> randPosx(0.0f, 900.0f);
+std::uniform_real_distribution<float> randPosy(0.0f, 900.0f);
 std::uniform_int_distribution<int> randColorRed(0,255);
 std::uniform_int_distribution<int> randColorGreen(0,255);
 std::uniform_int_distribution<int> randColorBlue(0,255);
 
 class Component;
+class EntityManager;
 class Entity;
+
 
 // == COMPONENT ID SYSTEM ==
 using ComponentID = std::uint32_t;
 constexpr std::size_t maxComponents{32};
+
+// == group variables ==
+using GroupID = std::uint32_t;
+constexpr std::uint32_t maxGroups{32};
+using GroupBitset = std::bitset<maxGroups>;
 
 using ComponentBitset = std::bitset<maxComponents>;
 using ComponentArray = std::array<Component*, maxComponents>;
@@ -63,6 +70,11 @@ virtual void initComponent() {}
 Component() {}
 virtual ~Component() {}
 
+void setOwnership(Entity* eOwner)
+{
+    this->mEntity = eOwner;
+}
+
 virtual void updateComponent(const float& dt) {}
 virtual void renderComponent(sf::RenderWindow& targetWin) {}
 
@@ -73,13 +85,22 @@ virtual void renderComponent(sf::RenderWindow& targetWin) {}
 class Entity
 {
 private:
+
+EntityManager& mManager;
+
 bool mAlive{true};
 std::vector<std::unique_ptr<Component>> mComponentsContainer {};
 
 ComponentArray mComponentArray {}; // stores the component pointer
 ComponentBitset mComponentBitset {}; // stores the ID of a particular component
 
+GroupBitset mGroupBitset {};
+
 public:
+// == CONSTRUCTOR/DESTRUCTOR ==
+Entity(EntityManager& manager) : mManager{manager} {}
+~Entity() {}
+
 template<typename T> bool hasComponent() const
 {
     // check if entity possesses a component of type 'T'
@@ -97,7 +118,7 @@ T& addComponent(TArgs&&... mArgs)
     // 1. allocate new component of type <T>, 
     T* component(new T(std::forward<TArgs>(mArgs)...));
     // 2. components entity owner is set like so
-    component->mEntity = this;
+    component->setOwnership(this);
     // 3. wrap the regular pointer into a smart pointer
     std::unique_ptr<Component> uC_Ptr{component};
     // 4. store the component smart_ptr in our container
@@ -112,6 +133,20 @@ T& addComponent(TArgs&&... mArgs)
     // return reference (so it's not lost to the container's ownership) to the component
     return *component;
 }
+
+// == GROUP MANAGEMENT ==
+bool hasGroup(GroupID group) const noexcept
+{
+    return mGroupBitset[group];
+}
+
+void addGroup(GroupID group) noexcept;
+
+void deleteGroup (GroupID group) noexcept
+{
+    mGroupBitset[group] = false;
+}
+
 
 // == accessor functions ==
 bool isAlive() const { return mAlive; }
@@ -149,6 +184,7 @@ class EntityManager
 {
 private:
 std::vector<std::unique_ptr<Entity>> mEntityContainer {};
+std::array<std::vector<Entity*>, maxGroups> mGroupedEntities {};
 
 public:
 EntityManager() {}
@@ -157,7 +193,7 @@ EntityManager() {}
 Entity& addEntity()
 {
     // 1. create new entity (add on the heap and assign pointer to it)
-    Entity* entity{new Entity{}};
+    Entity* entity{new Entity{*this}};
     // 2. wrap pure pointer into smart pointer
     std::unique_ptr<Entity> uPtr{entity};
     // 3. place smart pointer -> entity obj in container
@@ -167,9 +203,32 @@ Entity& addEntity()
     return *entity;
 }
 
+void addToGroup(Entity* entity, GroupID group)
+{
+    mGroupedEntities[group].emplace_back(entity);
+}
+
+std::vector<Entity*>& getEntitiesByGroup(GroupID group)
+{
+    return mGroupedEntities[group];
+}
+
 // main loop functions
 void updateManager(const float& dt)
 {
+    for(auto i (0u); i < maxGroups; ++i)
+    {
+        auto& eV{mGroupedEntities[i]};
+
+        eV.erase
+        (std::remove_if(eV.begin(), eV.end(),
+        [i](Entity* entity)
+        {
+            return !entity->isAlive() || !entity->hasGroup(i);
+        }),
+        eV.end()); 
+    }
+
     // remove all dead entities from mEntityContainer
     // 1. we have an iterator return a value in removedEntity
     // 2. using the lambda, it returns a dead entity into removedEntity
@@ -177,9 +236,9 @@ void updateManager(const float& dt)
     mEntityContainer.erase
     (std::remove_if(mEntityContainer.begin(), mEntityContainer.end(),
     [](const std::unique_ptr<Entity>& entity)
-        {
-            return !entity->isAlive();
-        }
+    {
+        return !entity->isAlive();
+    }
     ),
     mEntityContainer.end());
 
@@ -203,6 +262,11 @@ void renderManager(sf::RenderWindow& targetWin)
 
 };
 
+void Entity::addGroup(GroupID group) noexcept
+{
+    mGroupBitset[group] = true;
+    mManager.addToGroup(this,group);
+}
 
 // == COMPONENTS ==
 struct CounterComponent : Component
