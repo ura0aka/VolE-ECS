@@ -353,14 +353,24 @@ int main()
         dt = currentFrameTime - lastFrameTime;
         lastFrameTime = currentFrameTime;
         
+        auto& entity (manager.addEntity());
+        auto& cCounter(entity.addComponent<CounterComponent>());
+        auto& cShape(entity.addComponent<ShapeComponent>());
+        auto& cKill(entity.addComponent<KillComponent>());
+
+        entity.addGroup(VOLEGroup::Player);
+        
+
         if(spawnTimer >= spawnTimerMax)
         {
-            for(int i {0}; i < 10; ++i)
+            for(int i {0}; i < 1; ++i)
             {
                 auto& entity(manager.addEntity());
                 auto& cCounter(entity.addComponent<CounterComponent>());
                 auto& cShape(entity.addComponent<ShapeComponent>());
                 auto& cKill(entity.addComponent<KillComponent>());
+
+                entity.addGroup(VOLEGroup::NPC);
                 
 
                 spawnTimer = 0.0f;
@@ -377,6 +387,10 @@ int main()
             manager.updateManager(dt);
             dt -= UPS;
         }
+        
+        auto& player(manager.getEntitiesByGroup(Player));
+        auto& npcs(manager.getEntitiesByGroup(NPC));
+
         
         manager.renderManager(mainWindow);
         mainWindow.display();
